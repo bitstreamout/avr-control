@@ -1,0 +1,72 @@
+[
+    {
+        "Device": "SAT/CBL",
+	"Name": "SAT-PVR",
+	"Visible": "1"
+    },
+    {   
+        "Device": "DVD",
+        "Name": "DVD",
+        "Visible": "0"
+    },  
+    {   
+        "Device": "Blu-ray",
+        "Name": "Oppo BluRay",
+        "Visible": "1"
+    },  
+    {   
+        "Device": "GAME",
+        "Name": "Chromecast",
+        "Visible": "1"
+    },  
+    {   
+        "Device": "AUX1",
+        "Name": "Front",
+        "Visible": "1"
+    },  
+    {   
+        "Device": "AUX2",
+        "Name": "Tuner extern",
+        "Visible": "1"
+    },  
+    {   
+        "Device": "Media Player",
+        "Name": "Mediaplayer",
+        "Visible": "1"
+    },  
+    {   
+        "Device": "iPod/USB",
+        "Name": "iPod/USB",
+        "Visible": "1"
+    },  
+    {   
+        "Device": "CD",
+        "Name": "Oppo CD",
+        "Visible": "1"
+    },  
+    {   
+        "Device": "TUNER",
+        "Name": "Tuner intern",
+        "Visible": "1"
+    },  
+    {   
+        "Device": "NETWORK",
+        "Name": "Online Music",
+        "Visible": "1"
+    },  
+    {   
+        "Device": "TV AUDIO",
+        "Name": "TV ARC",
+        "Visible": "1"
+    },  
+    {   
+        "Device": "Bluetooth",
+        "Name": "Bluetooth",
+        "Visible": "1"
+    },  
+    {   
+        "Device": "PHONO",
+        "Name": "Phono",
+        "Visible": "0"
+    }
+]

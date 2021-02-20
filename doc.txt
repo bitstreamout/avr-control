@@ -1,0 +1,92 @@
+1. Building/Installing
+----------------------
+
+If you only need the command line utility (not the GTK
+front-end application), just change directory to the
+location containing where the source files have been
+downloaded and type:
+
+   make install
+
+To build and install with the GUI application, first
+install any necessary build tools and libraries:
+
+ - On Ubuntu:
+   apt-get install pkg-config
+
+Change directory to the location containing the
+source files and type:
+
+   make
+
+If this completes without any errors, type:
+
+   make install
+
+2. Initial Setup
+----------------
+
+The xmllint utility needs to be available in order to be
+able to list the AVR's inputs (using --list-inputs). To
+install it:
+
+ - On Ubuntu:
+   apt-get install libxml2-utils
+
+The first thing to do is to enter and save the AV receiver's
+network details for future use. Type:
+
+   avr --setup
+
+When prompted, enter the host name/IP address of your AV receiver
+and the default zone to control.
+
+ - Unless your receiver supports multiple zones and you have
+   renamed the main zone, just accept the default zone name of
+   "MainZone".
+
+ - If you don't want to use saved details, you can specify
+   them on the command line instead using --host and (if
+   necessary) --output, for example:
+
+   avr --host avr --output bedroom --volume -40
+
+ - To make the saved settings available to all users, copy or
+   move the file ~/.avrrc to /etc/avr.conf.
+
+3. Example Usage
+----------------
+
+List the selectable inputs available on the receiver:
+
+   avr --list-inputs
+
+Turn the receiver's power on, select the HDMI port marked "DVR" as
+the input source, set main zone's output volume to -30 dB SPL.
+
+   avr --power ON --input DVR --volume -30
+
+Power on zone 2 speakers and set their output volume to -35 dB SPL.
+
+   avr --output Zone2 --power ON --volume -35
+
+Power off both zone 1 (the default) and zone 2
+
+   avr --output MainZone --power STANDBY --output Zone2 --power STANDBY
+
+4. How to get a list from the Denon AVR
+---------------------------------------
+
+With the tool lwp-request(1) and the IP address of the AVR run the
+command
+
+   lwp-request http://<IP>/goform/formMainZone_MainZoneXmlStatus.xml
+
+then change/fill the avr-control.json list
+
+5. Usage
+--------
+
+The avr-control binary expects to have the avr script in the execution
+path e.g. ~/bin/ and the configurations file avr-control.xml and avr-control.json
+within ~/.config/avr-control/
