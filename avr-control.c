@@ -52,8 +52,8 @@ void run_command_async(char *command)
 
 	if((pid = fork())==0)
 	{
-//		system(command);
-		printf("%s\n", command);
+//		printf("%s\n", command);
+		system(command);
 		exit(0);
 	}
 }
@@ -86,8 +86,23 @@ void input_select(GtkComboBox *input_selector,gpointer user_data)
 void volume_change(GtkWidget *volume_slider,gpointer user_data)
 {
 	char command[50];
-//	sprintf(command,"avr --volume %d",(int)gtk_range_get_value((GtkRange *)volume_slider));
 	sprintf(command,"avr --volume %d",(int)gtk_scale_button_get_value(GTK_SCALE_BUTTON(volume_slider)));
+	run_command_async(command);
+}
+
+// Signal handler for toggle the volume mute state
+
+void mute_button(GtkWidget *toggle_widget, gpointer user_data)
+{
+	char command[50];
+	GtkToggleButton *toggle_mute = GTK_TOGGLE_BUTTON(toggle_widget);
+        gboolean button_state;
+
+        button_state = gtk_toggle_button_get_active(toggle_mute);
+	if (button_state)
+		sprintf(command,"avr --mute");
+	else
+		sprintf(command,"avr --unmute");
 	run_command_async(command);
 }
 
@@ -167,6 +182,7 @@ int main (int argc, char *argv[])
 	GError* error = NULL;
         GtkBuilder *builder;
         GObject *main_window;
+        GObject *toggle_mute;
         GObject *volume_slider;
         GObject *input_selector;
 	GObject *power_switch;
@@ -222,6 +238,9 @@ int main (int argc, char *argv[])
 	free(config);
 	config = NULL;
 
+	toggle_mute = gtk_builder_get_object(builder,"toggle_mute");
+	g_signal_connect(toggle_mute,"toggled",G_CALLBACK(mute_button),NULL);
+
 	volume_slider = gtk_builder_get_object(builder,"volume_slider");
 	gtk_widget_set_focus_on_click(GTK_WIDGET(volume_slider), TRUE);
 
@@ -242,7 +261,7 @@ int main (int argc, char *argv[])
 	g_signal_connect(main_window,"delete-event",G_CALLBACK(window_close),NULL);
         gtk_widget_show(GTK_WIDGET(main_window));
 
-//	daemon(0,0);
+	daemon(0,0);
 
 	sa.sa_handler = sigchld;
 	sa.sa_flags = SA_RESTART;

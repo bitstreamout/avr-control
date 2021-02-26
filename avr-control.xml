@@ -2,11 +2,11 @@
 <interface>
   <!-- interface-requires gtk+ 3.0 -->
   <object class="GtkAdjustment" id="vol">
+    <property name="upper">-18</property>
     <property name="lower">-78</property>
     <property name="value">-44</property>
-    <property name="upper">-18</property>
     <property name="step_increment">1</property>
-    <property name="page_increment">10</property>
+    <property name="page_increment">2</property>
   </object>
   <object class="GtkWindow" id="main_window">
     <property name="can_focus">False</property>
@@ -18,24 +18,68 @@
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <child>
-          <object class="GtkScale" id="volume_slider">
-            <property name="width_request">128</property>
-            <property name="height_request">24</property>
+          <object class="GtkToggleButton" id="toggle_mute">
             <property name="visible">True</property>
-            <property name="focus-on-click">True</property>
-            <property name="can_focus">True</property>
+            <property name="sensitive">True</property>
+            <signal name="toggled" handler="mute_button" object="mute-icon" swapped="no"/>
+            <style>
+                <class name="image-button"/>
+            </style>
+            <child>
+              <object class="GtkImage" id="mute-icon">
+                <property name="visible">True</property>
+                <property name="icon-name">audio-volume-muted</property>
+                <property name="icon-size">2</property>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="x">80</property>
+            <property name="y">83</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkVolumeButton" id="volume_slider">
+            <property name="width_request">82</property>
+            <property name="height_request">24</property>
             <property name="margin_right">24</property>
+            <property name="visible">True</property>
+            <property name="can_focus">True</property>
+            <property name="receives_default">True</property>
+            <property name="relief">none</property>
+            <property name="focus_on_click">False</property>
+            <property name="orientation">horizontal</property>
+            <property name="size">button</property>
             <property name="adjustment">vol</property>
-            <property name="round_digits">1</property>
-            <property name="digits">0</property>
-            <property name="value_pos">right</property>
-            <signal name="value-changed" handler="volume_change" swapped="no"/>
+            <property name="icons">audio-volume-muted
+audio-volume-high
+audio-volume-low
+audio-volume-medium</property>
             <accessibility>
               <relation type="labelled-by" target="Volume"/>
             </accessibility>
+            <child internal-child="plus_button">
+              <object class="GtkButton" id="plus_button">
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="relief">none</property>
+              </object>
+            </child>
+            <child internal-child="minus_button">
+              <object class="GtkButton" id="minus_button">
+                <property name="can_focus">True</property>
+                <property name="receives_default">True</property>
+                <property name="halign">center</property>
+                <property name="valign">center</property>
+                <property name="relief">none</property>
+              </object>
+            </child>
+            <signal name="value-changed" handler="volume_change" swapped="no"/>
           </object>
           <packing>
-            <property name="x">82</property>
+            <property name="x">128</property>
             <property name="y">83</property>
           </packing>
         </child>
