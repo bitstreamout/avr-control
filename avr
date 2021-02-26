@@ -1,0 +1,224 @@
+#!/bin/bash
+
+function program_name_banner
+{
+	echo "Denon AVR Control Utility 0.01"
+	echo "Copyright (C) 2012 James Turner"
+}
+
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+# ---------------------------------------------------------------------
+
+# Check to see whether name of AVR to communicate with has been
+# specified; report error and exit if missing
+
+function validate_avr_host
+{
+	if [ "${AVR_HOST}" == "" ]; then
+		echo "No AVR receiver specified (use --host to specify)"
+		exit 1
+	fi
+}
+
+function tempfile
+{
+	mktemp ${TMPDIR:-/tmp}/${0##*/}.XXXXXX || exit 1
+}
+
+# Validate presence of input paramter
+# $1 - input parameter
+# $2 - name/description of option to display if missing
+
+function validate_input
+{
+	validate_avr_host
+	if [ "$1" == "" ]; then
+		echo "Missing $2"
+		exit 1
+	fi
+}
+
+AVR_ZONE=MainZone
+
+if [ -f /etc/avr.conf ]; then
+	source /etc/avr.conf
+fi
+
+if [ -f ~/.avrrc ]; then
+	source ~/.avrrc
+fi
+
+ARG=1
+
+if [ "$1" == "" ]; then
+	$0 --help
+fi
+
+while [  "${!ARG}" != "" ]; do
+	case ${!ARG} in
+
+		--version)
+			program_name_banner
+			;;
+
+		--help)
+			$0 --version
+
+			echo
+			echo "--setup   (<host>)"
+			echo "          Save AVR setup (currently host name/IP) to ~/.avrrc"
+			echo
+			echo "--host    <host>"
+			echo "          Host name or IP address of AV receiver to control"
+			echo
+			echo "--power   <power-state>"
+			echo "          Set receiver power state: ON or STANDBY"
+			echo
+			echo "--list-inputs"
+			echo "          List available input sources"
+			echo
+			echo "--output  <zone-name>"
+			echo "          Select output zone (default MainZone if not specified)"
+			echo
+			echo "--input   <input-name>"
+			echo "          Select input source"
+			echo
+			echo "--volume  <volume>"
+			echo "          Set output volume in decibels of sound pressure level, relative"
+			echo "          to 20uPa reference (-30.0 dB SPL - moderately loud)"
+			echo
+			echo "--help"
+			echo "          Show this help"
+			echo
+			echo "--version"
+			echo "          Show version information"
+			;;
+
+		--setup)
+			let ARG=ARG+1
+			SETUP_AVR_HOST=${!ARG}
+
+			if [ "${SETUP_AVR_HOST}" == "" ] ; then
+				echo -n "Host name or IP address of the Denon AV surround receiver"
+				if [ "${AVR_HOST}" != "" ] ; then
+					echo -n " [${AVR_HOST}]"
+				fi
+				echo -n ": ";
+
+				read NEW_AVR_HOST
+
+				if [ "${NEW_AVR_HOST}" == "" ] ; then
+					NEW_AVR_HOST=${AVR_HOST}
+				fi
+			else
+				NEW_AVR_HOST=${SETUP_AVR_HOST}
+			fi
+
+			echo -n "Default zone to control"
+			if [ "${AVR_ZONE}" != "" ] ; then
+				echo -n " [${AVR_ZONE}]"
+			fi
+			echo -n ": "
+			read NEW_AVR_ZONE
+			if [ "${NEW_AVR_ZONE}" == "" ] ; then
+				NEW_AVR_ZONE=${AVR_ZONE}
+			fi
+
+
+
+			if [ "${NEW_AVR_HOST}" == "" ] ; then
+				echo "No host name or IP address specified";
+			else
+				AVR_HOST=${NEW_AVR_HOST}
+				echo "# Host name or IP address of the Denon AV surround receiver" > ~/.avrrc
+				echo "AVR_HOST=${AVR_HOST}" >> ~/.avrrc
+				echo >> ~/.avrrc
+				echo "# Default zone to control" >> ~/.avrrc
+				echo "AVR_ZONE=${AVR_ZONE}" >> ~/.avrrc
+				echo "Settings saved to ~/.avrrc"
+			fi
+			;;
+
+		--host)
+			let ARG=ARG+1
+			AVR_HOST=${!ARG}
+			;;
+
+		--power)
+			let ARG=ARG+1
+			validate_input "${!ARG}" "power state (ON or STANDBY)"
+			POWER=${!ARG}
+
+			## lwp-request http://${AVR_HOST}/${AVR_ZONE}/index.put.asp\?cmd0=PutSystem_OnStandby%2F${POWER}
+			test "$POWER" = STANDBY && POWER=OFF
+			lwp-request http://${AVR_HOST}/${AVR_ZONE}/index.put.asp\?cmd0=PutZone_OnOff%2F${POWER}
+			;;
+
+		--list-inputs)
+			validate_avr_host
+
+			if [ "`which xmllint`" == "" ] ; then
+			        echo "xmllint: command not found (needed to list input sources)"
+				exit 1
+			fi
+
+			ZONE_DATA=`tempfile`
+			SOURCE_NAMES=`tempfile`
+			DISPLAY_NAMES=`tempfile`
+			lwp-request http://${AVR_HOST}/goform/formMainZone_MainZoneXmlStatus.xml > ${ZONE_DATA}
+#cat ${ZONE_DATA}
+			xmllint --xpath '/item/InputFuncList' ${ZONE_DATA} | grep value \
+        			| sed 's/^<value>//;s/<\/value>$//;s/<value\/>$//' > ${SOURCE_NAMES}
+
+			xmllint --xpath '/item/RenameSource' ${ZONE_DATA} | grep value \
+				| sed 's/<value>//g;s/\s*<\/value>//g;s/<value\/>//g' > ${DISPLAY_NAMES}
+
+			echo "Available input sources:"
+			echo
+			echo "Name    Displayed as"
+			echo "--------------------"
+			paste ${SOURCE_NAMES} ${DISPLAY_NAMES}
+			echo
+			echo "Note: Source name NAPSTER may be accepted too on some units"
+			echo
+			rm ${SOURCE_NAMES} ${DISPLAY_NAMES} ${ZONE_DATA}
+			;;
+
+		--output)
+			let ARG=ARG+1
+			validate_input "${!ARG}" "zone name (MainZone, Zone2, Zone3, etc)"
+			;;
+
+		--input)
+			let ARG=ARG+1
+			validate_input "${!ARG}" "input source name (use --list-inputs to find available inputs)"
+		        SOURCE=${!ARG}
+        		lwp-request http://${AVR_HOST}/${AVR_ZONE}/index.put.asp\?cmd0=PutZone_InputFunction\%2F${SOURCE}
+
+			# The unit can tend to ignore subsequent commands unless a
+			# small delay is introduced after changing input source
+			sleep 1
+        		;;
+
+		--volume)
+			let ARG=ARG+1
+			validate_input "${!ARG}" "output volume level (number; in dB SPL)"
+			VOLUME=${!ARG}
+			lwp-request http://${AVR_HOST}/${AVR_ZONE}/index.put.asp\?cmd0=PutMasterVolumeSet%2F${VOLUME}
+			;;
+	esac
+
+	let ARG=ARG+1
+done

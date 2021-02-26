@@ -52,7 +52,8 @@ void run_command_async(char *command)
 
 	if((pid = fork())==0)
 	{
-		system(command);
+//		system(command);
+		printf("%s\n", command);
 		exit(0);
 	}
 }
@@ -85,7 +86,8 @@ void input_select(GtkComboBox *input_selector,gpointer user_data)
 void volume_change(GtkWidget *volume_slider,gpointer user_data)
 {
 	char command[50];
-	sprintf(command,"avr --volume %d",(int)gtk_range_get_value((GtkRange *)volume_slider));
+//	sprintf(command,"avr --volume %d",(int)gtk_range_get_value((GtkRange *)volume_slider));
+	sprintf(command,"avr --volume %d",(int)gtk_scale_button_get_value(GTK_SCALE_BUTTON(volume_slider)));
 	run_command_async(command);
 }
 
@@ -211,8 +213,8 @@ int main (int argc, char *argv[])
 		goto err;
 	}
 
-        builder = gtk_builder_new();
-        gtk_builder_add_from_file(builder,config,NULL);
+	builder = gtk_builder_new();
+	gtk_builder_add_from_file(builder,config,NULL);
 	if (!gtk_builder_add_from_file (builder, config, &error)){
 		g_error("Couldn't load builder file: %s", error->message);
 		goto err;
@@ -221,7 +223,7 @@ int main (int argc, char *argv[])
 	config = NULL;
 
 	volume_slider = gtk_builder_get_object(builder,"volume_slider");
-	gtk_widget_set_focus_on_click(GTK_WIDGET(volume_slider), FALSE);
+	gtk_widget_set_focus_on_click(GTK_WIDGET(volume_slider), TRUE);
 
 	g_signal_connect(volume_slider,"value-changed",G_CALLBACK(volume_change),NULL);
 
@@ -240,7 +242,7 @@ int main (int argc, char *argv[])
 	g_signal_connect(main_window,"delete-event",G_CALLBACK(window_close),NULL);
         gtk_widget_show(GTK_WIDGET(main_window));
 
-	daemon(0,0);
+//	daemon(0,0);
 
 	sa.sa_handler = sigchld;
 	sa.sa_flags = SA_RESTART;
