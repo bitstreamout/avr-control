@@ -99,6 +99,12 @@ while [  "${!ARG}" != "" ]; do
 			echo "          Set output volume in decibels of sound pressure level, relative"
 			echo "          to 20uPa reference (-30.0 dB SPL - moderately loud)"
 			echo
+			echo "--mute"
+			echo "          Mute current output volume"
+			echo
+			echo "--unmute"
+			echo "          Restore previous output volume"
+			echo
 			echo "--help"
 			echo "          Show this help"
 			echo
@@ -161,9 +167,9 @@ while [  "${!ARG}" != "" ]; do
 			validate_input "${!ARG}" "power state (ON or STANDBY)"
 			POWER=${!ARG}
 
-			## lwp-request http://${AVR_HOST}/${AVR_ZONE}/index.put.asp\?cmd0=PutSystem_OnStandby%2F${POWER}
+			## lwp-request http://${AVR_HOST}/${AVR_ZONE}/index.put.asp\?cmd0=PutSystem_OnStandby\%2F${POWER}
 			test "$POWER" = STANDBY && POWER=OFF
-			lwp-request http://${AVR_HOST}/${AVR_ZONE}/index.put.asp\?cmd0=PutZone_OnOff%2F${POWER}
+			lwp-request http://${AVR_HOST}/${AVR_ZONE}/index.put.asp\?cmd0=PutZone_OnOff\%2F${POWER}
 			;;
 
 		--list-inputs)
@@ -216,7 +222,13 @@ while [  "${!ARG}" != "" ]; do
 			let ARG=ARG+1
 			validate_input "${!ARG}" "output volume level (number; in dB SPL)"
 			VOLUME=${!ARG}
-			lwp-request http://${AVR_HOST}/${AVR_ZONE}/index.put.asp\?cmd0=PutMasterVolumeSet%2F${VOLUME}
+			lwp-request http://${AVR_HOST}/${AVR_ZONE}/index.put.asp\?cmd0=PutMasterVolumeSet\%2F${VOLUME}
+			;;
+		--mute)
+			lwp-request http://${AVR_HOST}/${AVR_ZONE}/index.put.asp\?cmd0=PutVolumeMute\%2Fon
+			;;
+		--unmute)
+			lwp-request http://${AVR_HOST}/${AVR_ZONE}/index.put.asp\?cmd0=PutVolumeMute\%2Foff
 			;;
 	esac
 

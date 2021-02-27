@@ -26,7 +26,7 @@
                 <class name="image-button"/>
             </style>
             <child>
-              <object class="GtkImage" id="mute-icon">
+              <object class="GtkImage" id="mute_icon">
                 <property name="visible">True</property>
                 <property name="icon-name">audio-volume-muted</property>
                 <property name="icon-size">2</property>
@@ -97,7 +97,7 @@ audio-volume-medium</property>
           </object>
           <packing>
             <property name="x">21</property>
-            <property name="y">79</property>
+            <property name="y">83</property>
           </packing>
         </child>
         <child>
