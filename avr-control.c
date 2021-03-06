@@ -27,7 +27,7 @@
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
-
+#include <getopt.h>
 
 static void sigchld(int sig __attribute__((__unused__)))
 {
@@ -180,6 +180,10 @@ void populate_input_alist(JsonArray *array, guint index, JsonNode *node, gpointe
 int main (int argc, char *argv[])
 {
 	GError* error = NULL;
+	GdkGeometry size_hints = { 240, 125, 0, 0, 240, 125, 10, 10, 0.0, 0.0, GDK_GRAVITY_NORTH_WEST };
+	static struct option long_options[] = {
+		{"geometry",	required_argument,  0,	'g' },
+		{0,		0,		    0,	 0  }};
         GtkBuilder *builder;
         GObject *main_window;
         GObject *toggle_mute;
@@ -268,6 +272,27 @@ int main (int argc, char *argv[])
 	(void)sigemptyset(&sa.sa_mask);
 	(void)sigaddset(&sa.sa_mask, SIGCHLD);
 	sigaction(SIGCHLD, &sa, 0);
+
+	gtk_window_set_geometry_hints (GTK_WINDOW (main_window),
+		GTK_WIDGET(main_window),
+		&size_hints,
+		GDK_HINT_MIN_SIZE |
+		GDK_HINT_BASE_SIZE |
+		GDK_HINT_RESIZE_INC);
+	while (1) {
+		int option_index = 0;
+		int c = getopt_long_only(argc, argv, "", long_options, &option_index);
+		if (c < 0)
+			break;
+		switch (c) {
+		case 'g':
+			if (!optarg || !gtk_window_parse_geometry (GTK_WINDOW (main_window), optarg))
+				fprintf (stderr, "Failed to parse '%s\n", long_options[option_index].name);
+			break;
+		default:
+			break;
+		}
+	}
 
         gtk_main();
 

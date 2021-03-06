@@ -230,6 +230,12 @@ while [  "${!ARG}" != "" ]; do
 		--unmute)
 			lwp-request http://${AVR_HOST}/${AVR_ZONE}/index.put.asp\?cmd0=PutVolumeMute\%2Foff
 			;;
+
+		--status)
+			lwp-request http://${AVR_HOST}/goform/formMainZone_MainZoneXmlStatus.xml | \
+			xmllint --xpath '//item/*[name()="MasterVolume" or name()="InputFuncSelect" or name()="Power"]/value' - | \
+			sed -r 's@</value>@\n@g;s@<value>@@g'
+			;;
 	esac
 
 	let ARG=ARG+1
